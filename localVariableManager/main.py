@@ -39,6 +39,11 @@ def buildArgs():
         help="Display what currently stored",
         action='store_true',
     )
+    argparser.add_argument(
+        "-cleanup",
+        help="Clean up exposed keys",
+        action='store_true',
+    )
     return argparser
 
 def parseArgs(args):
@@ -53,23 +58,26 @@ def parseArgs(args):
         elif not manager.add(args.add[0], args.name[0]):
             print(f"[Error] Unable to add {args.name}")
         else:
-            print(f"Successfully added {args.name[0]}")
+            print(f"Successfully added: {args.name[0]}")
     elif args.delete:
         if manager.delete(args.delete[0]):
             print(f"Successfully deleted {args.delete[0]}")
         else:
-            print(f"[Error] Unable to delete {args.delete}")
+            print(f"[Error] Unable to delete: {args.delete}")
     elif args.setenv:
-        name = args.name
+        name = args.name[0]
         if not name:
             print(f"No name provided using {args.delete}")
             name = args.delete
-        if manager.setenv(args.setenv, name):
-            print(f"Successfully set {name}")
+        if manager.setenv(args.setenv[0], name):
+            print(f"Successfully copied to clipboard for: {name}")
         else:
-            print(f"[Error] Unable to delete {args.delete}")
+            print(f"[Error] Unable to setenv: {name}")
     elif args.ls:
         if not manager.ls():
+            print(f"[Error] Something went wrong :(")
+    elif args.cleanup:
+        if not manager.cleanup():
             print(f"[Error] Something went wrong :(")
 
 def main():

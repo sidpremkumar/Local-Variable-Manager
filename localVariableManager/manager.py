@@ -4,6 +4,9 @@ import shutil
 from shutil import copyfile
 from pathlib import Path
 
+# 3rd Party Modules
+import clipboard
+
 # Global Variables
 TEMP_FOLDER = os.path.abspath('.lvm/')
 
@@ -109,6 +112,31 @@ def setenv(project_name, name_of_env):
     :return: Flag to indicate if we are successful
     :rtype boolean:
     """
+    # Copy our file to .exposed
+    absPathToVal = str(Path(f"{TEMP_FOLDER}/{project_name}").absolute())
+
+    # Check if its a dir
+
+    # if os.path.isdir(absPathToVal):
+    # Connect the export's with a ;
+
+    parent_folder = str(Path(absPathToVal).parent.absolute())
+    for file in os.listdir(parent_folder):
+        for possible_name in project_name.split('/'):
+            if file.startswith(possible_name):
+                index = ".exposed"
+                for path in project_name.split("/")[:-1]:
+                    index += f"/{path}"
+                    if not os.path.isdir(index):
+                        # Create directories if they don't exists
+                        os.mkdir(index)
+                copyfile(absPathToVal + Path(file).suffix, ".exposed/" + project_name + Path(file).suffix)
+                break
+
+    # Build our string to paste into clipboard
+    clipboardString = f"export {name_of_env}=.exposed/{project_name}{Path(file).suffix}"
+    clipboard.copy(clipboardString)
+    return True
 
 def ls():
     """
@@ -119,7 +147,6 @@ def ls():
     """
     list_files(TEMP_FOLDER)
     return True
-
 
 def list_files(startpath):
     """
@@ -139,3 +166,14 @@ def list_files(startpath):
         subindent = ' ' * 4 * (level + 1)
         for f in files:
             print('{}{}'.format(subindent, f))
+            # TODO: If we are at the end, show the file name my.key [main/project/my]
+
+def cleanup():
+    """
+    Delete .exposed/ dir
+
+    :return: Flag to indicate if we are successful
+    :rtype boolean:
+    """
+    shutil.rmtree(".exposed/")
+    return True
