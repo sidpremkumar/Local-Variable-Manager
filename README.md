@@ -1,1 +1,1 @@
-# local-variable-manager
+# Local Variable Manager (LVM)
