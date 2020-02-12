@@ -5,6 +5,9 @@ import os
 # Local Modules
 import localVariableManager.manager as manager
 
+# Global Variables
+ROOT = os.getenv("HOME")
+
 def buildArgs():
     """
     Helper function to build our args
@@ -65,10 +68,10 @@ def parseArgs(args):
         else:
             print(f"[Error] Unable to delete: {args.delete}")
     elif args.setenv:
-        name = args.name[0]
-        if not name:
-            print(f"No name provided using {args.delete}")
-            name = args.delete
+        if args.name:
+            name = args.name[0]
+        else:
+            name = ""
         if manager.setenv(args.setenv[0], name):
             print(f"Successfully copied to clipboard for: {name}")
         else:
@@ -88,10 +91,10 @@ def main():
     args = buildArgs().parse_args()
 
     # Ensure needed folders exits [lvm, exposed]
-    if not os.path.exists(".lvm"):
-        os.mkdir(".lvm")
-    if not os.path.exists(".exposed"):
-        os.mkdir(".exposed")
+    if not os.path.exists(f"{ROOT}/.lvm"):
+        os.mkdir(f"{ROOT}/.lvm")
+    if not os.path.exists(f"{ROOT}/.exposed"):
+        os.mkdir(f"{ROOT}/.exposed")
 
     # Parse our args and take action
     parseArgs(args)

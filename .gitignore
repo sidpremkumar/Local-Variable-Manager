@@ -1,0 +1,14 @@
+*.egg-info
+*.idea
+*.gitignore
+venv/*
+*.pyc
+*/__pycache__/*
+.exposed
+.lvm
+*.DS_Store
+*build/*
+*dist/*
+
+# Any cert types as they come up should be added just in case
+*.key
