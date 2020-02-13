@@ -52,15 +52,19 @@ def add(file_path, name, encrypt):
         print(f"[Warning] No extension in file_path!")
 
     try:
-        # Encrypt our file
-        if os.getenv('LVMANAGER_PW') and encrypt:
-            key = os.getenv('LVMANAGER_PW')
-        else:
-            key = ""
-        encryption_client = Fernet(bytes(key, "utf-8"))
         with open(absPathToFile, "rb") as open_file:
             file_data = open_file.read()
-        encrypted_data = encryption_client.encrypt(file_data)
+        # Encrypt our file
+        if encrypt:
+            if os.getenv('LVMANAGER_PW') and encrypt:
+                key = os.getenv('LVMANAGER_PW')
+            else:
+                key = ""
+            encryption_client = Fernet(bytes(key, "utf-8"))
+
+            encrypted_data = encryption_client.encrypt(file_data)
+        else:
+            encrypted_data = file_data
         # Write our file to our .lvm/ directory
         paths = name.split('/')
         verify_paths(paths)
@@ -146,11 +150,11 @@ def confirm(name, really=False):
     """
     if not really:
         confirm = input(f"Are you sure you want to delete: {name}?\n"
-                        f"Press Y to confirm [must be capital!]:")
+                        f"Press y to confirm [must be lowercase]:")
     else:
         confirm = input(f"Are you REALLY SURE you want to delete: {name}?\n"
-                        f"Press Y to confirm [must be capital!]:")
-    if confirm == "Y":
+                        f"Press y to confirm [must be lowercase]:")
+    if confirm == "y":
         return True
     else:
         return False
@@ -180,26 +184,32 @@ def setenv(project_name, name_of_env, encrypt, return_string=False):
         return updateClipboard(clipboard_string)
 
     elif name_of_env != "":
-        # Get our key
-        if os.getenv('LVMANAGER_PW') and encrypt:
-            key = os.getenv('LVMANAGER_PW')
-        else:
-            key = ""
-        encryption_client = Fernet(bytes(key, "utf-8"))
         file_extension = getFileExtension(project_name)
-        with open(absPathToVal+file_extension, "rb") as file:
+        with open(absPathToVal + file_extension, "rb") as file:
             # read the encrypted data
             encrypted_data = file.read()
-        # Decrypt the data
-        decrypted_data = encryption_client.decrypt(encrypted_data)
-        # Copy our file to .exposed
-        with open(newAbsPathToVal+file_extension, "wb") as file:
-            file.write(decrypted_data)
-        file_extension = getFileExtension(project_name)
-        verify_paths(project_name.split('/'), exposed=True)
-        # Build our string to paste into clipboard
-        new_path = os.path.join(TEMP_EXPOSED_FOLDER, f"{project_name}{file_extension}")
-        clipboard_string = f"export {name_of_env}={new_path}"
+        if encrypt:
+            # Get our key
+            if os.getenv('LVMANAGER_PW') and encrypt:
+                key = os.getenv('LVMANAGER_PW')
+            else:
+                key = ""
+            encryption_client = Fernet(bytes(key, "utf-8"))
+            # Decrypt the data
+            decrypted_data = encryption_client.decrypt(encrypted_data)
+        else:
+            decrypted_data = encrypted_data
+        # If the file is .lvmanager, export the content of the file
+        if file_extension == ".lvmanager":
+            clipboard_string = f"export {name_of_env}=" + str(decrypted_data)[2:-1].replace('\\n', '')
+        else:
+            # Copy our file to .exposed
+            verify_paths(project_name.split('/'), exposed=True)
+            with open(newAbsPathToVal+file_extension, "wb") as file:
+                file.write(decrypted_data)
+            # Build our string to paste into clipboard
+            new_path = os.path.join(TEMP_EXPOSED_FOLDER, f"{project_name}{file_extension}")
+            clipboard_string = f"export {name_of_env}={new_path}"
         if return_string:
             return clipboard_string
         return updateClipboard(clipboard_string)
