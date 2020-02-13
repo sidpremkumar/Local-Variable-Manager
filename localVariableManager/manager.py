@@ -4,10 +4,11 @@ import shutil
 from shutil import copyfile
 from distutils.dir_util import copy_tree
 from pathlib import Path
-import sys
+import base64
 
 # 3rd Party Modules
-import clipboard
+from cryptography.fernet import Fernet
+import pyperclip
 
 # Global Variables
 ROOT = os.getenv("HOME")
@@ -15,10 +16,25 @@ TEMP_FOLDER = ROOT + "/.lvm/"
 TEMP_EXPOSED_FOLDER = ROOT + "/.exposed/"
 
 
-def add(file_path, name):
+def generateKey():
+    """
+    Method to generate a encryption key
+    """
+    try:
+        key = Fernet.generate_key()
+        updateClipboard(f"export LVMANAGER_PW={str(key)[2:-1]}")
+        print(f"Key: {key}")
+        print("Export command copied to clipboard. Save this value!")
+        return True
+    except Exception as e:
+        print(f"Something went wrong\nException: {e}")
+        return False
+
+def add(file_path, name, encrypt):
     """
     Method to add file LVM
 
+    :param boolean encrypt: Flag to indicate if we should encrypt
     :param String file_path: Path to file
     :param String name: Name of project or file thats been passed in
     :return: Flag to indicate if we are successful
@@ -36,10 +52,20 @@ def add(file_path, name):
         print(f"[Warning] No extension in file_path!")
 
     try:
-        # Copy our file to our .lvm/ directory
+        # Encrypt our file
+        if os.getenv('LVMANAGER_PW') and encrypt:
+            key = os.getenv('LVMANAGER_PW')
+        else:
+            key = ""
+        encryption_client = Fernet(bytes(key, "utf-8"))
+        with open(absPathToFile, "rb") as open_file:
+            file_data = open_file.read()
+        encrypted_data = encryption_client.encrypt(file_data)
+        # Write our file to our .lvm/ directory
         paths = name.split('/')
         verify_paths(paths)
-        copyfile(absPathToFile, TEMP_FOLDER + '/' + name + Path(file_path).suffix)
+        with open(TEMP_FOLDER + '/' + name + Path(file_path).suffix, "wb") as file:
+            file.write(encrypted_data)
         return True
     except Exception as e:
         print(f"[Error] Exception: {e}")
@@ -120,21 +146,22 @@ def confirm(name, really=False):
     """
     if not really:
         confirm = input(f"Are you sure you want to delete: {name}?\n"
-                        f"Press Y to confirm:")
+                        f"Press Y to confirm [must be capital!]:")
     else:
         confirm = input(f"Are you REALLY SURE you want to delete: {name}?\n"
-                        f"Press Y to confirm:")
+                        f"Press Y to confirm [must be capital!]:")
     if confirm == "Y":
         return True
     else:
         return False
 
-def setenv(project_name, name_of_env, return_string=False):
+def setenv(project_name, name_of_env, encrypt, return_string=False):
     """
     Delete a stored project
 
     :param String project_name: Name of project/file to be used
     :param String name_of_env: Name of global variable to be used
+    :param boolean encrypt: Flag to indicate if we should unencrypt
     :param boolean return_string: Return string instead of boolean
     :return: Flag to indicate if we are successful/clipboard string
     :rtype boolean/String:
@@ -150,13 +177,24 @@ def setenv(project_name, name_of_env, return_string=False):
         for file in os.listdir(newAbsPathToVal):
             file_no_extension = os.path.splitext(file)[0]
             clipboard_string += setenv(project_name+file_no_extension, file_no_extension.upper(), return_string=True) + ";"
-        clipboard.copy(clipboard_string)
-        return True
+        return updateClipboard(clipboard_string)
 
     elif name_of_env != "":
-        # Copy our file to .exposed
+        # Get our key
+        if os.getenv('LVMANAGER_PW') and encrypt:
+            key = os.getenv('LVMANAGER_PW')
+        else:
+            key = ""
+        encryption_client = Fernet(bytes(key, "utf-8"))
         file_extension = getFileExtension(project_name)
-        copyfile(absPathToVal+file_extension, newAbsPathToVal+file_extension)
+        with open(absPathToVal+file_extension, "rb") as file:
+            # read the encrypted data
+            encrypted_data = file.read()
+        # Decrypt the data
+        decrypted_data = encryption_client.decrypt(encrypted_data)
+        # Copy our file to .exposed
+        with open(newAbsPathToVal+file_extension, "wb") as file:
+            file.write(decrypted_data)
         file_extension = getFileExtension(project_name)
         verify_paths(project_name.split('/'), exposed=True)
         # Build our string to paste into clipboard
@@ -164,12 +202,25 @@ def setenv(project_name, name_of_env, return_string=False):
         clipboard_string = f"export {name_of_env}={new_path}"
         if return_string:
             return clipboard_string
-        clipboard.copy(clipboard_string)
-        return True
+        return updateClipboard(clipboard_string)
 
     print(f"[Error] No name for env provided for: {project_name}")
     return False
 
+def updateClipboard(clipboard_string):
+    """
+    Update clipboard with string.
+    Taken from: https://stackoverflow.com/questions/579687/how-do-i-copy-a-string-to-the-clipboard-on-windows-using-python
+
+    :param String clipboard_string: String we should copy to clipboard
+    :return: Flag if we were successful
+    """
+    try:
+        pyperclip.copy(clipboard_string)
+        return True
+    except:
+        print(f"Could not update clipboard.\n{clipboard_string}\n")
+        return False
 def ls():
     """
     List out projects/values we have stored

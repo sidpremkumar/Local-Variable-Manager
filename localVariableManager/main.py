@@ -47,6 +47,16 @@ def buildArgs():
         help="Clean up exposed keys",
         action='store_true',
     )
+    argparser.add_argument(
+        "-e",
+        help="Use encryption for values when storing or setting the environment [LVMANAGER_PW is needed as an environmental variable]",
+        action='store_true',
+    )
+    argparser.add_argument(
+        "-getkey",
+        help="Get a new encryption key",
+        action='store_true',
+    )
     return argparser
 
 def parseArgs(args):
@@ -57,8 +67,8 @@ def parseArgs(args):
     """
     if args.add:
         if not args.name:
-            print("[Error] No name provided!")
-        elif not manager.add(args.add[0], args.name[0]):
+            print("[Error] No -name provided!")
+        elif not manager.add(args.add[0], args.name[0], args.e):
             print(f"[Error] Unable to add {args.name}")
         else:
             print(f"Successfully added: {args.name[0]}")
@@ -72,7 +82,7 @@ def parseArgs(args):
             name = args.name[0]
         else:
             name = ""
-        if manager.setenv(args.setenv[0], name):
+        if manager.setenv(args.setenv[0], name, args.e):
             print(f"Successfully copied to clipboard for: {name}")
         else:
             print(f"[Error] Unable to setenv: {name}")
@@ -81,6 +91,9 @@ def parseArgs(args):
             print(f"[Error] Something went wrong :(")
     elif args.cleanup:
         if not manager.cleanup():
+            print(f"[Error] Something went wrong :(")
+    elif args.getkey:
+        if not manager.generateKey():
             print(f"[Error] Something went wrong :(")
 
 def main():
