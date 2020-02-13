@@ -180,7 +180,7 @@ def setenv(project_name, name_of_env, encrypt, return_string=False):
         clipboard_string = ""
         for file in os.listdir(newAbsPathToVal):
             file_no_extension = os.path.splitext(file)[0]
-            clipboard_string += setenv(project_name+file_no_extension, file_no_extension.upper(), return_string=True) + ";"
+            clipboard_string += setenv(project_name+file_no_extension, file_no_extension.upper(), encrypt, return_string=True) + ";"
         return updateClipboard(clipboard_string)
 
     elif name_of_env != "":
