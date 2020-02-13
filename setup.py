@@ -8,8 +8,8 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='localVariableManager',
-    version="1.0.1",
+    name='Local Variable Manager',
+    version="1.0",
     description="CLI tool to manage local key/certs and token.",
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -19,12 +19,12 @@ setup(
     license='MIT',
     install_requires=install_requires,
     packages=[
-        'localVariableManager',
+        'lvmanager',
     ],
     include_package_data=True,
     entry_points={
         'console_scripts': [
-            "lvmanager=localVariableManager.main:main",
+            "lvmanager=lvmanager.main:main",
         ],
     },
 )

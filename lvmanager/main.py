@@ -3,7 +3,7 @@ import argparse
 import os
 
 # Local Modules
-import localVariableManager.manager as manager
+import lvmanager.manager as manager
 
 # Global Variables
 ROOT = os.getenv("HOME")
