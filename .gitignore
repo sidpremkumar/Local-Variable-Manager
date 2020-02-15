@@ -12,3 +12,4 @@ venv/*
 
 # Any cert types as they come up should be added just in case
 *.key
+*.lvmanager

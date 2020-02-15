@@ -67,6 +67,9 @@ def add(file_path, name, encrypt):
             encrypted_data = file_data
         # Write our file to our .lvm/ directory
         paths = name.split('/')
+        if len(paths) < 2:
+            print(f"[Error] '{name}' is invalid. File needs to be under at least 1 project (i.e. project/{name})")
+            return False
         verify_paths(paths)
         with open(TEMP_FOLDER + '/' + name + Path(file_path).suffix, "wb") as file:
             file.write(encrypted_data)
