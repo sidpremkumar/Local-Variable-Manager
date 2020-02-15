@@ -53,11 +53,18 @@ lvmanager -getkey
 The export command will be copied to the clipboard and will need to be set by the user. Don't lose this key!
 
 ## How to Install
-You can install `lvmanager` through the setup.py file:
+You can install `lvmanager` with pip:
+```shell script
+pip install Local-Variable-Manager
+```
+To install for the current user:
+```shell script
+pip install --user Local-Variable-Manager
+```
+Or you can install `lvmanager` through the setup.py file:
 ```shell script
 python3 setup.py install
 ```
-Pip config coming soon
 
 ## Example
 0) Get and export key for encryption:
