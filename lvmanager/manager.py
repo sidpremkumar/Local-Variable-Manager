@@ -1,10 +1,8 @@
 # Build-In Modules
 import os
 import shutil
-from shutil import copyfile
 from distutils.dir_util import copy_tree
 from pathlib import Path
-import base64
 
 # 3rd Party Modules
 from cryptography.fernet import Fernet
