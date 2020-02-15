@@ -173,6 +173,8 @@ def setenv(project_name, name_of_env, encrypt, return_string=False):
     :return: Flag to indicate if we are successful/clipboard string
     :rtype boolean/String:
     """
+    if not encrypt:
+        print("[Warning] Decryption disabled! Files may be incorrect if saved with encryption")
     absPathToVal = os.path.join(TEMP_FOLDER, project_name)
     newAbsPathToVal = os.path.join(TEMP_EXPOSED_FOLDER, project_name)
 
