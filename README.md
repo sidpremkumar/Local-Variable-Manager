@@ -53,6 +53,9 @@ lvmanager -getkey
 The export command will be copied to the clipboard and will need to be set by the user. Don't lose this key!
 
 ## How to Install
+
+NOTE: Currently pip is not working. Please install it by cloning the repo (through `setup.py`).
+
 You can install `lvmanager` with pip:
 ```shell script
 pip install Local-Variable-Manager
